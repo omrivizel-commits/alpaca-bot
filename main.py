@@ -55,9 +55,56 @@ class TradeRequest(BaseModel):
 # Dashboard
 # ──────────────────────────────────────────────────────────────────────────────
 
+_LOGIN_GATE = """
+<style>
+#_lg{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#05050f;font-family:'Inter',sans-serif}
+#_lg::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at -10% 0%,rgba(139,92,246,.12) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 110% 100%,rgba(0,212,255,.10) 0%,transparent 70%)}
+#_lc{background:rgba(8,12,35,.9);border:1px solid rgba(0,212,255,.18);border-radius:20px;padding:48px 40px;width:320px;display:flex;flex-direction:column;align-items:center;gap:20px;box-shadow:0 0 80px rgba(0,212,255,.06),0 0 140px rgba(139,92,246,.06);position:relative;overflow:hidden;backdrop-filter:blur(24px)}
+#_lc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.6),rgba(139,92,246,.6),transparent)}
+#_ll{font-family:monospace;font-size:10px;letter-spacing:5px;color:rgba(255,255,255,.35);text-transform:uppercase}
+#_lt{font-size:19px;font-weight:300;color:#fff;letter-spacing:3px;text-align:center;line-height:1.4}
+#_lt span{color:#00d4ff;font-weight:500}
+#_li{width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(0,212,255,.18);border-radius:10px;padding:14px 18px;color:#fff;font-family:monospace;font-size:17px;letter-spacing:4px;outline:none;text-align:center;box-sizing:border-box}
+#_li:focus{border-color:rgba(0,212,255,.45);box-shadow:0 0 24px rgba(0,212,255,.1)}
+#_lb{width:100%;padding:14px;background:linear-gradient(135deg,rgba(0,212,255,.14),rgba(139,92,246,.14));border:1px solid rgba(0,212,255,.3);border-radius:10px;color:#00d4ff;font-family:monospace;font-size:12px;letter-spacing:4px;font-weight:500;cursor:pointer}
+#_lb:hover{background:linear-gradient(135deg,rgba(0,212,255,.24),rgba(139,92,246,.24));box-shadow:0 0 30px rgba(0,212,255,.18)}
+#_le{font-family:monospace;font-size:11px;color:#ff4a3d;letter-spacing:2px;text-align:center;min-height:14px;opacity:0;transition:opacity .2s}
+#_lh{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px;font-family:monospace}
+</style>
+<div id="_lg">
+  <div id="_lc">
+    <div id="_ll">&#9672; &nbsp; O M N I - A G E N T</div>
+    <div id="_lt">TRADING<br><span>DASHBOARD</span></div>
+    <input type="password" id="_li" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="off"/>
+    <div id="_le">INCORRECT PASSWORD</div>
+    <button id="_lb" onclick="_cl()">ENTER &rarr;</button>
+    <div id="_lh">AUTHORIZED ACCESS ONLY</div>
+  </div>
+</div>
+<script>
+function _cl(){
+  var v=document.getElementById('_li').value;
+  var e=document.getElementById('_le');
+  if(v==='Pitter2018'){
+    var g=document.getElementById('_lg');
+    g.style.transition='opacity .7s ease';
+    g.style.opacity='0';
+    setTimeout(function(){g.style.display='none'},700);
+  } else {
+    e.style.opacity='1';
+    document.getElementById('_li').value='';
+    document.getElementById('_li').focus();
+    setTimeout(function(){e.style.opacity='0'},2200);
+  }
+}
+document.getElementById('_li').addEventListener('keydown',function(e){if(e.key==='Enter')_cl();});
+</script>
+"""
+
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
     html = (Path(__file__).parent / "dashboard" / "index.html").read_text(encoding="utf-8")
+    html = html.replace("</body>", _LOGIN_GATE + _ET_CLOCK + "</body>")
     return HTMLResponse(content=html)
 
 
