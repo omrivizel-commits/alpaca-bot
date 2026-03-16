@@ -232,28 +232,30 @@ async def auto_trade_scan_now():
 @app.get("/scanner")
 async def scanner():
     watchlist = load_watchlist()
+    sem = asyncio.Semaphore(3)  # max 3 concurrent yfinance/API calls
 
     async def _scan(symbol: str):
-        try:
-            state = await asyncio.wait_for(build_state(symbol), timeout=30)
-            return {
-                "symbol": symbol,
-                "price": state["price"],
-                "signal": state["signal"],
-                "green_light": state["green_light"],
-                "bb_pvalue": state["bb_pvalue"],
-                "rsi_pvalue": state["rsi_pvalue"],
-                "sentiment_score": state["sentiment_score"],
-                "sentiment_direction": state["sentiment_direction"],
-                "chart_pattern": state["chart_pattern"],
-                "vision_veto": state["vision_veto"],
-                "top_headline": state.get("top_headline", ""),
-                "error": None,
-            }
-        except asyncio.TimeoutError:
-            return {"symbol": symbol, "error": "timeout", "price": None, "signal": "HOLD", "green_light": False}
-        except Exception as e:
-            return {"symbol": symbol, "error": str(e), "green_light": False}
+        async with sem:
+            try:
+                state = await asyncio.wait_for(build_state(symbol), timeout=60)
+                return {
+                    "symbol": symbol,
+                    "price": state["price"],
+                    "signal": state["signal"],
+                    "green_light": state["green_light"],
+                    "bb_pvalue": state["bb_pvalue"],
+                    "rsi_pvalue": state["rsi_pvalue"],
+                    "sentiment_score": state["sentiment_score"],
+                    "sentiment_direction": state["sentiment_direction"],
+                    "chart_pattern": state["chart_pattern"],
+                    "vision_veto": state["vision_veto"],
+                    "top_headline": state.get("top_headline", ""),
+                    "error": None,
+                }
+            except asyncio.TimeoutError:
+                return {"symbol": symbol, "error": "timeout", "price": None, "signal": "HOLD", "green_light": False}
+            except Exception as e:
+                return {"symbol": symbol, "error": str(e), "green_light": False}
 
     results = await asyncio.gather(*[_scan(s) for s in watchlist])
     return JSONResponse(content=list(results))
