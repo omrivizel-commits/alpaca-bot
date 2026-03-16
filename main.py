@@ -278,13 +278,13 @@ async def _run_scanner_background():
     global _scan_cache
     watchlist = load_watchlist()
     _scan_cache["total"] = len(watchlist)
-    sem = asyncio.Semaphore(5)
+    sem = asyncio.Semaphore(1)  # one at a time — avoids yfinance rate limiting
     partial: list = []
 
     async def _scan(symbol: str):
         async with sem:
             try:
-                state = await asyncio.wait_for(build_state(symbol), timeout=60)
+                state = await asyncio.wait_for(build_state(symbol), timeout=90)
                 result = {
                     "symbol": symbol,
                     "price": state["price"],
