@@ -229,8 +229,13 @@ async def backtest(symbol: str, period: str = "2y", capital: float = 5000.0):
     try:
         from backtest.engine import run_backtest
         loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, run_backtest, symbol, period, capital)
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, run_backtest, symbol, period, capital),
+            timeout=50
+        )
         return JSONResponse(content=result)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail=f"Backtest timed out — try a shorter period (1y or 6mo)")
     except Exception as e:
         logger.error(f"Backtest failed for {symbol}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
