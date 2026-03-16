@@ -57,32 +57,18 @@ class TradeRequest(BaseModel):
 
 _ET_CLOCK = """
 <style>
-#countdown{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:110px}
+#countdown{visibility:hidden;width:0;overflow:hidden}
+#_etclock{position:fixed;top:14px;right:28px;z-index:200;display:flex;flex-direction:column;align-items:flex-end;gap:2px;pointer-events:none}
 #_ct{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:400;color:rgba(255,255,255,.82);letter-spacing:2px;line-height:1}
 #_cl{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:3px;text-transform:uppercase}
 </style>
+<div id="_etclock"><span id="_ct">00:00:00</span><span id="_cl">EASTERN TIME</span></div>
 <script>
 (function(){
-  var cd=document.getElementById('countdown');
-  if(cd){
-    cd.innerHTML='<span id="_ct">00:00:00</span><span id="_cl">EASTERN TIME</span>';
-  }
   var fmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-  function tick(){
-    var el=document.getElementById('_ct');
-    if(el) el.textContent=fmt.format(new Date());
-  }
+  function tick(){var el=document.getElementById('_ct');if(el)el.textContent=fmt.format(new Date());}
   tick();
   setInterval(tick,1000);
-  // Override countdown to not overwrite the clock
-  window.startCountdown=function(){
-    var REFRESH_SEC=30;
-    var countdown=REFRESH_SEC;
-    var interval=setInterval(function(){
-      countdown--;
-      if(countdown<=0){clearInterval(interval);if(typeof refreshAll==='function')refreshAll().then(window.startCountdown);}
-    },1000);
-  };
 })();
 </script>
 """
@@ -135,8 +121,15 @@ document.getElementById('_li').addEventListener('keydown',function(e){if(e.key==
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
-    html = (Path(__file__).parent / "dashboard" / "index.html").read_text(encoding="utf-8")
-    html = html.replace("</body>", _LOGIN_GATE + _ET_CLOCK + "</body>")
+    try:
+        html = (Path(__file__).parent / "dashboard" / "index.html").read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        html = "<html><head></head><body></body></html>"
+    # inject before closing body tag (last occurrence only)
+    tag = "</body>"
+    idx = html.rfind(tag)
+    if idx != -1:
+        html = html[:idx] + _LOGIN_GATE + _ET_CLOCK + html[idx:]
     return HTMLResponse(content=html)
 
 
