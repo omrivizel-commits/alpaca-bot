@@ -55,6 +55,38 @@ class TradeRequest(BaseModel):
 # Dashboard
 # ──────────────────────────────────────────────────────────────────────────────
 
+_ET_CLOCK = """
+<style>
+#countdown{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:110px}
+#_ct{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:400;color:rgba(255,255,255,.82);letter-spacing:2px;line-height:1}
+#_cl{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:3px;text-transform:uppercase}
+</style>
+<script>
+(function(){
+  var cd=document.getElementById('countdown');
+  if(cd){
+    cd.innerHTML='<span id="_ct">00:00:00</span><span id="_cl">EASTERN TIME</span>';
+  }
+  var fmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  function tick(){
+    var el=document.getElementById('_ct');
+    if(el) el.textContent=fmt.format(new Date());
+  }
+  tick();
+  setInterval(tick,1000);
+  // Override countdown to not overwrite the clock
+  window.startCountdown=function(){
+    var REFRESH_SEC=30;
+    var countdown=REFRESH_SEC;
+    var interval=setInterval(function(){
+      countdown--;
+      if(countdown<=0){clearInterval(interval);if(typeof refreshAll==='function')refreshAll().then(window.startCountdown);}
+    },1000);
+  };
+})();
+</script>
+"""
+
 _LOGIN_GATE = """
 <style>
 #_lg{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#05050f;font-family:'Inter',sans-serif}
