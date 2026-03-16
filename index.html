@@ -1122,30 +1122,50 @@ td strong {
     </div>
   </div>
 
-  <!-- Notifications -->
+  <!-- Market Overview -->
   <div class="card full-width">
     <div class="card-header">
-      <span class="card-title">Email Notifications</span>
-      <span id="emailStatus" class="refresh-info">Checking...</span>
+      <span class="card-title">Market Overview</span>
+      <span id="marketRefresh" class="refresh-info">—</span>
     </div>
     <div class="card-body">
-      <div class="auto-trade-row" style="margin-bottom:16px">
-        <button class="toggle-btn btn-violet" onclick="testEmail()">SEND TEST EMAIL</button>
-        <div class="at-stat">
-          <span class="at-label">Status</span>
-          <span class="at-value" id="emailConfigStatus">&mdash;</span>
-        </div>
-        <div class="at-stat">
-          <span class="at-label">Alerts sent</span>
-          <span class="at-value mono" id="emailCount">&mdash;</span>
-        </div>
+      <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:center">
+        <div class="at-stat"><span class="at-label">SPY</span><span class="at-value mono" id="moSPY">—</span><span class="mono" id="moSPYchg" style="font-size:12px;margin-left:6px">—</span></div>
+        <div class="at-stat"><span class="at-label">QQQ</span><span class="at-value mono" id="moQQQ">—</span><span class="mono" id="moQQQchg" style="font-size:12px;margin-left:6px">—</span></div>
+        <div class="at-stat"><span class="at-label">VIX</span><span class="at-value mono" id="moVIX">—</span><span class="mono" id="moVIXchg" style="font-size:12px;margin-left:6px">—</span></div>
+        <div class="at-stat"><span class="at-label">IWM</span><span class="at-value mono" id="moIWM">—</span><span class="mono" id="moIWMchg" style="font-size:12px;margin-left:6px">—</span></div>
+        <div class="at-stat"><span class="at-label">DXY</span><span class="at-value mono" id="moDXY">—</span><span class="mono" id="moDXYchg" style="font-size:12px;margin-left:6px">—</span></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Risk Monitor -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Risk Monitor</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="at-stat"><span class="at-label">Capital Deployed</span><span class="at-value mono" id="rmDeployed">—</span></div>
+        <div class="at-stat"><span class="at-label">Capital Free</span><span class="at-value mono" id="rmFree">—</span></div>
+        <div class="at-stat"><span class="at-label">Open Positions</span><span class="at-value mono" id="rmPositions">—</span></div>
+        <div class="at-stat"><span class="at-label">Unrealized P&amp;L</span><span class="at-value mono" id="rmPnl">—</span></div>
+        <div class="at-stat"><span class="at-label">Exposure %</span><span class="at-value mono" id="rmExposure">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- News Feed -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">News Feed</span>
+      <span id="newsFeedStatus" class="refresh-info">from scanner</span>
+    </div>
+    <div class="card-body" style="padding:0">
       <table>
-        <thead>
-          <tr><th>Time</th><th>Subject</th></tr>
-        </thead>
-        <tbody id="notifLogBody">
-          <tr><td colspan="2" class="empty-state">No notifications sent yet.</td></tr>
+        <thead><tr><th>Symbol</th><th>Headline</th></tr></thead>
+        <tbody id="newsFeedBody">
+          <tr><td colspan="2" class="empty-state">Run scanner to load headlines.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1798,39 +1818,65 @@ async function runScanNow() {
   }, 1000);
 }
 
-// ── Notifications ─────────────────────────────────────────────────────────────
+// ── Market Overview ───────────────────────────────────────────────────────────
 
-async function fetchNotifications() {
+async function fetchMarketOverview() {
   try {
-    const r = await fetch('/notifications/log');
+    const r = await fetch('/market-overview');
     const d = await r.json();
-    const configured = d.configured;
-    document.getElementById('emailConfigStatus').textContent = configured ? '\uD83D\uDFE2 Configured' : '\uD83D\uDD34 Not configured';
-    document.getElementById('emailStatus').textContent = configured ? 'Gmail connected' : 'Add credentials to .env';
-    document.getElementById('emailCount').textContent = d.log.length;
-    if (!d.log.length) {
-      document.getElementById('notifLogBody').innerHTML =
-        '<tr><td colspan="2" class="empty-state">No notifications sent yet.</td></tr>';
-      return;
+    document.getElementById('marketRefresh').textContent = new Date().toLocaleTimeString();
+    for (const sym of ['SPY','QQQ','VIX','IWM','DXY']) {
+      const item = d[sym];
+      if (!item) continue;
+      const priceEl = document.getElementById('mo' + sym);
+      const chgEl   = document.getElementById('mo' + sym + 'chg');
+      if (priceEl) priceEl.textContent = '$' + item.price.toFixed(2);
+      if (chgEl) {
+        const sign = item.change_pct >= 0 ? '+' : '';
+        chgEl.textContent = sign + item.change_pct.toFixed(2) + '%';
+        chgEl.style.color = item.change_pct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+      }
     }
-    document.getElementById('notifLogBody').innerHTML = d.log.map(n => `
-      <tr>
-        <td class="mono" style="color:var(--text-dim);white-space:nowrap">${n.time}</td>
-        <td>${n.subject}</td>
-      </tr>
-    `).join('');
   } catch(e) {}
 }
 
-async function testEmail() {
+// ── Risk Monitor ──────────────────────────────────────────────────────────────
+
+async function fetchRiskMonitor() {
   try {
-    const r = await fetch('/notifications/test', { method: 'POST' });
+    const [pr, po] = await Promise.all([fetch('/portfolio'), fetch('/positions')]);
+    const port = await pr.json();
+    const positions = await po.json();
+    const equity = port.equity || 0;
+    const deployed = positions.reduce((s, p) => s + (p.current_price * p.qty || 0), 0);
+    const free = equity - deployed;
+    const pnl = port.total_unrealized_pnl || 0;
+    const exposure = equity > 0 ? (deployed / equity * 100) : 0;
+    document.getElementById('rmDeployed').textContent  = '$' + fmt(deployed);
+    document.getElementById('rmFree').textContent      = '$' + fmt(free);
+    document.getElementById('rmPositions').textContent = positions.length;
+    document.getElementById('rmPnl').textContent       = (pnl >= 0 ? '+' : '') + '$' + fmt(pnl);
+    document.getElementById('rmPnl').style.color       = pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+    document.getElementById('rmExposure').textContent  = exposure.toFixed(1) + '%';
+  } catch(e) {}
+}
+
+// ── News Feed (from scanner cache) ────────────────────────────────────────────
+
+async function fetchNewsFeed() {
+  try {
+    const r = await fetch('/scanner/status');
     const d = await r.json();
-    alert(d.message || d.detail);
-    await fetchNotifications();
-  } catch(e) {
-    alert('Error — is the server running?');
-  }
+    const items = (d.partial || d.results || []).filter(s => s.top_headline && !s.error);
+    if (!items.length) return;
+    document.getElementById('newsFeedStatus').textContent = items.length + ' headlines';
+    document.getElementById('newsFeedBody').innerHTML = items.map(s => `
+      <tr>
+        <td><strong>${s.symbol}</strong></td>
+        <td style="color:var(--text-dim);font-size:12px">${s.top_headline}</td>
+      </tr>
+    `).join('');
+  } catch(e) {}
 }
 
 // ── Refresh loop ─────────────────────────────────────────────────────────────
@@ -1838,7 +1884,7 @@ async function testEmail() {
 async function refreshAll() {
   document.getElementById('lastUpdate').textContent =
     'Last update: ' + new Date().toLocaleTimeString();
-  await Promise.all([fetchPortfolio(), fetchPositions(), fetchTradeLog(), fetchAutoTradeStatus(), fetchNotifications()]);
+  await Promise.all([fetchPortfolio(), fetchPositions(), fetchTradeLog(), fetchAutoTradeStatus(), fetchMarketOverview(), fetchRiskMonitor(), fetchNewsFeed()]);
 }
 
 // Scanner runs separately (slower — runs the full analysis pipeline)

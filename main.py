@@ -373,6 +373,28 @@ def portfolio():
 # Core routes
 # ──────────────────────────────────────────────────────────────────────────────
 
+@app.get("/market-overview")
+async def market_overview():
+    symbols = {"SPY": "SPY", "QQQ": "QQQ", "VIX": "^VIX", "IWM": "IWM", "DXY": "DX-Y.NYB"}
+    loop = asyncio.get_running_loop()
+    result = {}
+    for label, ticker in symbols.items():
+        try:
+            import yfinance as yf
+            def _fetch(t):
+                data = yf.Ticker(t).fast_info
+                price = float(data.last_price or data.previous_close)
+                prev  = float(data.previous_close)
+                chg   = ((price - prev) / prev * 100) if prev else 0.0
+                return {"price": round(price, 2), "change_pct": round(chg, 2)}
+            result[label] = await asyncio.wait_for(
+                loop.run_in_executor(None, _fetch, ticker), timeout=10.0
+            )
+        except Exception:
+            result[label] = None
+    return JSONResponse(content=result)
+
+
 @app.get("/health")
 def health():
     return {"status": "online", "system": "Omni-Agent v1.0"}
