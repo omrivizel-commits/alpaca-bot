@@ -195,7 +195,7 @@ async def scanner():
 
     async def _scan(symbol: str):
         try:
-            state = await build_state(symbol)
+            state = await asyncio.wait_for(build_state(symbol), timeout=30)
             return {
                 "symbol": symbol,
                 "price": state["price"],
@@ -210,6 +210,8 @@ async def scanner():
                 "top_headline": state.get("top_headline", ""),
                 "error": None,
             }
+        except asyncio.TimeoutError:
+            return {"symbol": symbol, "error": "timeout", "price": None, "signal": "HOLD", "green_light": False}
         except Exception as e:
             return {"symbol": symbol, "error": str(e), "green_light": False}
 
