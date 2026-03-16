@@ -897,127 +897,7 @@ td strong {
   margin: 12px 0;
 }
 
-/* ── Login Gate ─────────────────────────────────────────────────────────── */
-#loginGate {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-void);
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
-}
-#loginGate.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-#loginGate::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at -10% 0%, rgba(139,92,246,0.10) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 50% at 110% 100%, rgba(0,212,255,0.08) 0%, transparent 70%);
-}
-.login-card {
-  background: rgba(8,12,35,0.85);
-  border: 1px solid rgba(0,212,255,0.15);
-  border-radius: 20px;
-  padding: 48px 40px;
-  width: 340px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  box-shadow: 0 0 80px rgba(0,212,255,0.05), 0 0 140px rgba(139,92,246,0.05);
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px) saturate(160%);
-}
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.5), rgba(139,92,246,0.5), transparent);
-}
-.login-logo {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 5px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-.login-title {
-  font-size: 20px;
-  font-weight: 300;
-  color: var(--text-primary);
-  letter-spacing: 3px;
-  text-align: center;
-  line-height: 1.4;
-}
-.login-title span { color: var(--accent-cyan); font-weight: 500; }
-.login-input {
-  width: 100%;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(0,212,255,0.15);
-  border-radius: 10px;
-  padding: 14px 18px;
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 18px;
-  letter-spacing: 4px;
-  outline: none;
-  text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.login-input:focus {
-  border-color: rgba(0,212,255,0.4);
-  box-shadow: 0 0 24px rgba(0,212,255,0.08);
-}
-.login-input::placeholder { letter-spacing: 6px; color: var(--text-dim); font-size: 14px; }
-.login-btn {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(139,92,246,0.12));
-  border: 1px solid rgba(0,212,255,0.28);
-  border-radius: 10px;
-  color: var(--accent-cyan);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
-}
-.login-btn:hover {
-  background: linear-gradient(135deg, rgba(0,212,255,0.22), rgba(139,92,246,0.22));
-  box-shadow: 0 0 30px rgba(0,212,255,0.15);
-  border-color: rgba(0,212,255,0.5);
-}
-.login-error {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--accent-red);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-align: center;
-  min-height: 15px;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.login-error.show { opacity: 1; }
-.login-hint {
-  font-size: 11px;
-  color: var(--text-dim);
-  letter-spacing: 1px;
-  font-family: var(--font-mono);
-}
+
 </style>
 </head>
 <body>
@@ -1028,18 +908,6 @@ td strong {
   <div class="blob blob-cyan"></div>
   <div class="blob blob-blue"></div>
   <div class="blob blob-purple"></div>
-</div>
-
-<!-- ── Login Gate ──────────────────────────────────────────────────────── -->
-<div id="loginGate">
-  <div class="login-card">
-    <div class="login-logo">&#9672; &nbsp; O M N I - A G E N T</div>
-    <div class="login-title">TRADING<br><span>DASHBOARD</span></div>
-    <input type="password" class="login-input" id="loginInput" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="off" />
-    <div class="login-error" id="loginError">INCORRECT PASSWORD</div>
-    <button class="login-btn" onclick="checkLogin()">ENTER &rarr;</button>
-    <div class="login-hint">AUTHORIZED ACCESS ONLY</div>
-  </div>
 </div>
 
 <!-- Particle canvas -->
@@ -1925,26 +1793,6 @@ runScanner();  // Run scanner once on load; it's slow so runs independently
 // Scanner reruns every 5 minutes
 setInterval(runScanner, 300_000);
 
-// ── Login Gate ─────────────────────────────────────────────────────────────────
-function checkLogin() {
-  const input = document.getElementById('loginInput');
-  const error = document.getElementById('loginError');
-  if (input.value === 'Pitter2018') {
-    const gate = document.getElementById('loginGate');
-    gate.style.transition = 'opacity 0.7s ease';
-    gate.style.opacity = '0';
-    setTimeout(() => gate.classList.add('hidden'), 700);
-  } else {
-    error.classList.add('show');
-    input.value = '';
-    input.focus();
-    setTimeout(() => error.classList.remove('show'), 2200);
-  }
-}
-
-document.getElementById('loginInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') checkLogin();
-});
 </script>
 </body>
 </html>
