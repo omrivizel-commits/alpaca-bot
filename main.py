@@ -232,7 +232,7 @@ async def auto_trade_scan_now():
 @app.get("/scanner")
 async def scanner():
     watchlist = load_watchlist()
-    sem = asyncio.Semaphore(3)  # max 3 concurrent yfinance/API calls
+    sem = asyncio.Semaphore(5)  # max 5 concurrent yfinance/API calls
 
     async def _scan(symbol: str):
         async with sem:
