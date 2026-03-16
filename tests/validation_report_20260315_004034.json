@@ -1,0 +1,209 @@
+{
+  "timestamp": "2026-03-14T22:40:34.775559+00:00",
+  "symbol": "NVDA",
+  "summary": {
+    "pass": 25,
+    "fail": 0,
+    "warn": 1,
+    "skip": 0,
+    "total": 26
+  },
+  "paper_trade_ready": true,
+  "results": [
+    {
+      "check": "signal_required_fields",
+      "status": "PASS",
+      "detail": "All 9 fields present",
+      "ts": "2026-03-14T22:40:26.909163+00:00"
+    },
+    {
+      "check": "signal_valid_enum",
+      "status": "PASS",
+      "detail": "signal=BUY",
+      "ts": "2026-03-14T22:40:26.909322+00:00"
+    },
+    {
+      "check": "signal_confidence_range",
+      "status": "PASS",
+      "detail": "confidence=43",
+      "ts": "2026-03-14T22:40:26.909419+00:00"
+    },
+    {
+      "check": "signal_entry_nonzero",
+      "status": "PASS",
+      "detail": "entry=$180.26",
+      "ts": "2026-03-14T22:40:26.909799+00:00"
+    },
+    {
+      "check": "signal_json_serializable",
+      "status": "PASS",
+      "detail": "Clean JSON",
+      "ts": "2026-03-14T22:40:26.910037+00:00"
+    },
+    {
+      "check": "news_direction_accuracy",
+      "status": "PASS",
+      "detail": "20/20 correct (100%) \u2014 threshold 70%",
+      "ts": "2026-03-14T22:40:26.916566+00:00"
+    },
+    {
+      "check": "news_json_clean",
+      "status": "PASS",
+      "detail": "All 20 events clean JSON",
+      "ts": "2026-03-14T22:40:26.916816+00:00"
+    },
+    {
+      "check": "master_decision_rate",
+      "status": "PASS",
+      "detail": "21/22 days had BUY/SELL decision (95%)",
+      "ts": "2026-03-14T22:40:27.138849+00:00"
+    },
+    {
+      "check": "master_win_rate",
+      "status": "WARN",
+      "detail": "Direction accuracy: 9/21 (43%) \u2014 threshold 50%",
+      "ts": "2026-03-14T22:40:27.139005+00:00",
+      "data": {
+        "sample": [
+          {
+            "date": "2026-02-10",
+            "decision": "BUY",
+            "conf": 49,
+            "price_change_pct": 0.8,
+            "correct": true
+          },
+          {
+            "date": "2026-02-11",
+            "decision": "BUY",
+            "conf": 49,
+            "price_change_pct": -1.64,
+            "correct": false
+          },
+          {
+            "date": "2026-02-12",
+            "decision": "BUY",
+            "conf": 49,
+            "price_change_pct": -2.21,
+            "correct": false
+          },
+          {
+            "date": "2026-02-13",
+            "decision": "SELL",
+            "conf": 49,
+            "price_change_pct": 1.18,
+            "correct": false
+          },
+          {
+            "date": "2026-02-17",
+            "decision": "SELL",
+            "conf": 49,
+            "price_change_pct": 1.63,
+            "correct": false
+          }
+        ]
+      }
+    },
+    {
+      "check": "master_json_valid",
+      "status": "PASS",
+      "detail": "0 JSON errors over 22 days",
+      "ts": "2026-03-14T22:40:27.139248+00:00"
+    },
+    {
+      "check": "signal_gap_move_10pct",
+      "status": "PASS",
+      "detail": "Meme stock \u2014 extreme gap moves \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:27.342830+00:00"
+    },
+    {
+      "check": "gap_gap_move_10pct",
+      "status": "PASS",
+      "detail": "Meme stock \u2014 extreme gap moves \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:28.909623+00:00"
+    },
+    {
+      "check": "signal_low_volume",
+      "status": "PASS",
+      "detail": "Low volume / near-halt stock \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:29.086774+00:00"
+    },
+    {
+      "check": "gap_low_volume",
+      "status": "PASS",
+      "detail": "Low volume / near-halt stock \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:29.610532+00:00"
+    },
+    {
+      "check": "signal_etf_no_options",
+      "status": "PASS",
+      "detail": "ETF with limited options chain \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:29.822533+00:00"
+    },
+    {
+      "check": "gap_etf_no_options",
+      "status": "PASS",
+      "detail": "ETF with limited options chain \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:30.587580+00:00"
+    },
+    {
+      "check": "signal_normal_liquid",
+      "status": "PASS",
+      "detail": "Normal liquid large-cap \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:30.795320+00:00"
+    },
+    {
+      "check": "gap_normal_liquid",
+      "status": "PASS",
+      "detail": "Normal liquid large-cap \u2014 clean JSON",
+      "ts": "2026-03-14T22:40:31.995862+00:00"
+    },
+    {
+      "check": "config_gemini_key",
+      "status": "PASS",
+      "detail": "GEMINI_API_KEY set",
+      "ts": "2026-03-14T22:40:31.996893+00:00"
+    },
+    {
+      "check": "config_alpaca_keys",
+      "status": "PASS",
+      "detail": "Alpaca keys set",
+      "ts": "2026-03-14T22:40:31.996929+00:00"
+    },
+    {
+      "check": "yfinance_connectivity",
+      "status": "PASS",
+      "detail": "AAPL last_price=$250.12",
+      "ts": "2026-03-14T22:40:32.285690+00:00"
+    },
+    {
+      "check": "alpaca_connectivity",
+      "status": "PASS",
+      "detail": "Paper account equity=$5,000.00",
+      "ts": "2026-03-14T22:40:33.004039+00:00"
+    },
+    {
+      "check": "finnhub_news",
+      "status": "PASS",
+      "detail": "headline='You Won't Believe How Much Money Berkshire Hathaway Gets Fro'",
+      "ts": "2026-03-14T22:40:33.587162+00:00"
+    },
+    {
+      "check": "all_8_agents_import",
+      "status": "PASS",
+      "detail": "All 8 agents import cleanly",
+      "ts": "2026-03-14T22:40:34.768326+00:00"
+    },
+    {
+      "check": "supervisor_threshold",
+      "status": "PASS",
+      "detail": "CONFIDENCE_THRESHOLD=65%",
+      "ts": "2026-03-14T22:40:34.772629+00:00"
+    },
+    {
+      "check": "auto_trader_constants",
+      "status": "PASS",
+      "detail": "scan=5min | news=30sec | sector=60min | conf_threshold=65",
+      "ts": "2026-03-14T22:40:34.775162+00:00"
+    }
+  ]
+}

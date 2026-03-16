@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-03-14T14:54:03.946010+00:00",
+  "symbol": "NVDA",
+  "summary": {
+    "pass": 23,
+    "fail": 1,
+    "warn": 2,
+    "skip": 0,
+    "total": 26
+  },
+  "paper_trade_ready": false,
+  "results": [
+    {
+      "check": "signal_required_fields",
+      "status": "PASS",
+      "detail": "All 9 fields present",
+      "ts": "2026-03-14T14:53:43.716669+00:00"
+    },
+    {
+      "check": "signal_valid_enum",
+      "status": "PASS",
+      "detail": "signal=INSUFFICIENT_DATA",
+      "ts": "2026-03-14T14:53:43.716950+00:00"
+    },
+    {
+      "check": "signal_confidence_range",
+      "status": "PASS",
+      "detail": "confidence=0",
+      "ts": "2026-03-14T14:53:43.717102+00:00"
+    },
+    {
+      "check": "signal_entry_nonzero",
+      "status": "PASS",
+      "detail": "entry=$180.26",
+      "ts": "2026-03-14T14:53:43.717284+00:00"
+    },
+    {
+      "check": "signal_json_serializable",
+      "status": "PASS",
+      "detail": "Clean JSON",
+      "ts": "2026-03-14T14:53:43.717573+00:00"
+    },
+    {
+      "check": "news_direction_accuracy",
+      "status": "FAIL",
+      "detail": "0/20 correct (0%) \u2014 threshold 70%",
+      "ts": "2026-03-14T14:53:50.898018+00:00",
+      "data": {
+        "failures": [
+          "AAPL: expected bullish, got neutral",
+          "NVDA: expected bullish, got neutral",
+          "SPY: expected bearish, got neutral",
+          "META: expected bearish, got neutral",
+          "TSLA: expected bearish, got neutral"
+        ]
+      }
+    },
+    {
+      "check": "news_json_clean",
+      "status": "PASS",
+      "detail": "All 20 events clean JSON",
+      "ts": "2026-03-14T14:53:50.898135+00:00"
+    },
+    {
+      "check": "master_decision_rate",
+      "status": "WARN",
+      "detail": "0/22 days had BUY/SELL decision (0%)",
+      "ts": "2026-03-14T14:53:56.094811+00:00"
+    },
+    {
+      "check": "master_win_rate",
+      "status": "WARN",
+      "detail": "Direction accuracy: 0/0 (0%) \u2014 threshold 50%",
+      "ts": "2026-03-14T14:53:56.095090+00:00",
+      "data": {
+        "sample": []
+      }
+    },
+    {
+      "check": "master_json_valid",
+      "status": "PASS",
+      "detail": "0 JSON errors over 22 days",
+      "ts": "2026-03-14T14:53:56.095320+00:00"
+    },
+    {
+      "check": "signal_gap_move_10pct",
+      "status": "PASS",
+      "detail": "Meme stock \u2014 extreme gap moves \u2014 clean JSON",
+      "ts": "2026-03-14T14:53:56.643131+00:00"
+    },
+    {
+      "check": "gap_gap_move_10pct",
+      "status": "PASS",
+      "detail": "Meme stock \u2014 extreme gap moves \u2014 clean JSON",
+      "ts": "2026-03-14T14:53:58.099572+00:00"
+    },
+    {
+      "check": "signal_low_volume",
+      "status": "PASS",
+      "detail": "Low volume / near-halt stock \u2014 clean JSON",
+      "ts": "2026-03-14T14:53:58.266660+00:00"
+    },
+    {
+      "check": "gap_low_volume",
+      "status": "PASS",
+      "detail": "Low volume / near-halt stock \u2014 clean JSON",
+      "ts": "2026-03-14T14:53:58.775152+00:00"
+    },
+    {
+      "check": "signal_etf_no_options",
+      "status": "PASS",
+      "detail": "ETF with limited options chain \u2014 clean JSON",
+      "ts": "2026-03-14T14:53:59.139931+00:00"
+    },
+    {
+      "check": "gap_etf_no_options",
+      "status": "PASS",
+      "detail": "ETF with limited options chain \u2014 clean JSON",
+      "ts": "2026-03-14T14:54:00.098952+00:00"
+    },
+    {
+      "check": "signal_normal_liquid",
+      "status": "PASS",
+      "detail": "Normal liquid large-cap \u2014 clean JSON",
+      "ts": "2026-03-14T14:54:00.525508+00:00"
+    },
+    {
+      "check": "gap_normal_liquid",
+      "status": "PASS",
+      "detail": "Normal liquid large-cap \u2014 clean JSON",
+      "ts": "2026-03-14T14:54:01.920700+00:00"
+    },
+    {
+      "check": "config_gemini_key",
+      "status": "PASS",
+      "detail": "GEMINI_API_KEY set",
+      "ts": "2026-03-14T14:54:01.921188+00:00"
+    },
+    {
+      "check": "config_alpaca_keys",
+      "status": "PASS",
+      "detail": "Alpaca keys set",
+      "ts": "2026-03-14T14:54:01.921356+00:00"
+    },
+    {
+      "check": "yfinance_connectivity",
+      "status": "PASS",
+      "detail": "AAPL last_price=$250.12",
+      "ts": "2026-03-14T14:54:02.195749+00:00"
+    },
+    {
+      "check": "alpaca_connectivity",
+      "status": "PASS",
+      "detail": "Paper account equity=$5,000.00",
+      "ts": "2026-03-14T14:54:02.822139+00:00"
+    },
+    {
+      "check": "finnhub_news",
+      "status": "PASS",
+      "detail": "headline='Review: Does the $599 MacBook Neo Fit in Your Life?'",
+      "ts": "2026-03-14T14:54:03.428882+00:00"
+    },
+    {
+      "check": "all_8_agents_import",
+      "status": "PASS",
+      "detail": "All 8 agents import cleanly",
+      "ts": "2026-03-14T14:54:03.942043+00:00"
+    },
+    {
+      "check": "supervisor_threshold",
+      "status": "PASS",
+      "detail": "CONFIDENCE_THRESHOLD=65%",
+      "ts": "2026-03-14T14:54:03.943488+00:00"
+    },
+    {
+      "check": "auto_trader_constants",
+      "status": "PASS",
+      "detail": "scan=5min | news=30sec | sector=60min | conf_threshold=65",
+      "ts": "2026-03-14T14:54:03.944727+00:00"
+    }
+  ]
+}

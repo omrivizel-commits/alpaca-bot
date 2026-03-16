@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+yfinance
+alpaca-py
+ccxt
+finnhub-python
+mplfinance
+pandas
+numpy
+scipy
+python-dotenv
+pydantic-settings
+httpx
+matplotlib
+google-generativeai
