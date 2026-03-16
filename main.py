@@ -119,6 +119,48 @@ document.getElementById('_li').addEventListener('keydown',function(e){if(e.key==
 </script>
 """
 
+_SCANNER_JS = """
+<script>
+// Override scanner to use background polling (avoids Railway HTTP timeout)
+async function fetchScanner() {
+  var body = document.getElementById('scannerBody');
+  var countEl = document.getElementById('scannerCount');
+  body.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:28px;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:3px;font-size:12px">&#8635; &nbsp; SCANNING WATCHLIST&hellip;</td></tr>';
+  try {
+    await fetch('/scanner/start', {method:'POST'});
+  } catch(e) {
+    body.innerHTML = '<tr><td colspan="11" class="empty-state">Scanner error — is the server running?</td></tr>';
+    return;
+  }
+  var poll = setInterval(async function() {
+    try {
+      var r = await fetch('/scanner/status');
+      var d = await r.json();
+      if (d.partial && d.partial.length > 0) {
+        _scannerData = d.partial;
+        if (countEl) countEl.textContent = d.status === 'done'
+          ? d.results.length + ' symbols'
+          : d.partial.length + ' / ' + (d.total || '?') + ' scanned';
+        renderScanner();
+        if (d.status !== 'done') {
+          var row = document.createElement('tr');
+          row.innerHTML = '<td colspan="11" style="text-align:center;padding:8px;color:rgba(255,255,255,.25);font-family:monospace;font-size:10px;letter-spacing:3px">&#8635; SCANNING REMAINING SYMBOLS&hellip;</td>';
+          document.getElementById('scannerBody').appendChild(row);
+        }
+      }
+      if (d.status === 'done') {
+        clearInterval(poll);
+        _scannerData = d.results;
+        if (countEl) countEl.textContent = d.results.length + ' symbols';
+        renderScanner();
+      }
+    } catch(e) { clearInterval(poll); }
+  }, 3000);
+}
+async function runScanner() { await fetchScanner(); }
+</script>
+"""
+
 _MOBILE_CSS = """
 <style>
 @media (max-width: 768px) {
@@ -169,7 +211,7 @@ def dashboard():
     tag = "</body>"
     idx = html.rfind(tag)
     if idx != -1:
-        html = html[:idx] + _LOGIN_GATE + _ET_CLOCK + _MOBILE_CSS + html[idx:]
+        html = html[:idx] + _LOGIN_GATE + _ET_CLOCK + _MOBILE_CSS + _SCANNER_JS + html[idx:]
     return HTMLResponse(content=html)
 
 
@@ -226,19 +268,24 @@ async def auto_trade_scan_now():
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Scanner
+# Scanner — background + polling architecture
 # ──────────────────────────────────────────────────────────────────────────────
 
-@app.get("/scanner")
-async def scanner():
+_scan_cache: dict = {"status": "idle", "results": [], "partial": [], "total": 0}
+
+
+async def _run_scanner_background():
+    global _scan_cache
     watchlist = load_watchlist()
-    sem = asyncio.Semaphore(5)  # max 5 concurrent yfinance/API calls
+    _scan_cache["total"] = len(watchlist)
+    sem = asyncio.Semaphore(5)
+    partial: list = []
 
     async def _scan(symbol: str):
         async with sem:
             try:
                 state = await asyncio.wait_for(build_state(symbol), timeout=60)
-                return {
+                result = {
                     "symbol": symbol,
                     "price": state["price"],
                     "signal": state["signal"],
@@ -253,12 +300,32 @@ async def scanner():
                     "error": None,
                 }
             except asyncio.TimeoutError:
-                return {"symbol": symbol, "error": "timeout", "price": None, "signal": "HOLD", "green_light": False}
+                result = {"symbol": symbol, "error": "timeout", "price": None, "signal": "HOLD", "green_light": False}
             except Exception as e:
-                return {"symbol": symbol, "error": str(e), "green_light": False}
+                result = {"symbol": symbol, "error": str(e), "green_light": False}
+            partial.append(result)
+            _scan_cache["partial"] = list(partial)
+            return result
 
     results = await asyncio.gather(*[_scan(s) for s in watchlist])
-    return JSONResponse(content=list(results))
+    _scan_cache["results"] = list(results)
+    _scan_cache["partial"] = list(results)
+    _scan_cache["status"] = "done"
+
+
+@app.post("/scanner/start")
+async def scanner_start():
+    global _scan_cache
+    if _scan_cache["status"] == "running":
+        return JSONResponse(content={"status": "running", "total": _scan_cache.get("total", 0)})
+    _scan_cache = {"status": "running", "results": [], "partial": [], "total": 0}
+    asyncio.create_task(_run_scanner_background())
+    return JSONResponse(content={"status": "started"})
+
+
+@app.get("/scanner/status")
+async def scanner_status():
+    return JSONResponse(content=_scan_cache)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
