@@ -211,12 +211,26 @@ header h1 {
 }
 
 #countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 110px;
+}
+#clockTime {
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  min-width: 100px;
-  text-align: right;
-  letter-spacing: 0.5px;
+  font-size: 17px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.82);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+#clockLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
 /* ── Grid layout ──────────────────────────────────────────────────────── */
@@ -1040,7 +1054,10 @@ td strong {
     <div class="dot" id="statusDot"></div>
     <span id="statusText">Connecting...</span>
   </div>
-  <div id="countdown" class="refresh-info">Refreshing...</div>
+  <div id="countdown">
+    <span id="clockTime">00:00:00</span>
+    <span id="clockLabel">EASTERN TIME</span>
+  </div>
 </header>
 
 <div class="grid">
@@ -1829,12 +1846,24 @@ async function runScanner() {
   await fetchScanner();
 }
 
+// ── Eastern Time Clock ────────────────────────────────────────────────────────
+(function startETClock() {
+  const etFmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  });
+  function tick() {
+    document.getElementById('clockTime').textContent = etFmt.format(new Date());
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
 function startCountdown() {
   countdown = REFRESH_SEC;
-  const el = document.getElementById('countdown');
   const interval = setInterval(() => {
     countdown--;
-    el.textContent = `Refresh in ${countdown}s`;
     if (countdown <= 0) {
       clearInterval(interval);
       refreshAll().then(startCountdown);
