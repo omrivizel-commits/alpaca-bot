@@ -119,6 +119,46 @@ document.getElementById('_li').addEventListener('keydown',function(e){if(e.key==
 </script>
 """
 
+_MOBILE_CSS = """
+<style>
+@media (max-width: 768px) {
+  /* Stack all grid layouts to single column */
+  .grid, [class*="grid-cols"], [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Reduce outer padding so content fills screen */
+  body { padding: 8px !important; }
+  .container, main, section, .dashboard, #app {
+    padding: 8px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  /* Cards: full width, smaller padding */
+  .card, [class*="card"], .panel, [class*="panel"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 14px !important;
+    margin-bottom: 12px !important;
+  }
+  /* Tables: scroll horizontally rather than overflow off-screen */
+  table { width: 100% !important; display: block !important; overflow-x: auto !important; }
+  /* Move ET clock so it doesn't overlap header on mobile */
+  #_etclock { top: 8px !important; right: 10px !important; }
+  #_ct { font-size: 13px !important; }
+  /* Shrink large headings */
+  h1 { font-size: 1.3rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  /* Inputs and buttons: full width */
+  input[type="text"], input[type="number"], select, button {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+</style>
+"""
+
 @app.get("/", response_class=HTMLResponse)
 def dashboard():
     try:
@@ -129,7 +169,7 @@ def dashboard():
     tag = "</body>"
     idx = html.rfind(tag)
     if idx != -1:
-        html = html[:idx] + _LOGIN_GATE + _ET_CLOCK + html[idx:]
+        html = html[:idx] + _LOGIN_GATE + _ET_CLOCK + _MOBILE_CSS + html[idx:]
     return HTMLResponse(content=html)
 
 
