@@ -1880,18 +1880,10 @@ runScanner();  // Run scanner once on load; it's slow so runs independently
 setInterval(runScanner, 300_000);
 
 // ── Login Gate ─────────────────────────────────────────────────────────────────
-(function() {
-  if (sessionStorage.getItem('oa_auth') === '1') {
-    const gate = document.getElementById('loginGate');
-    if (gate) gate.classList.add('hidden');
-  }
-})();
-
 function checkLogin() {
   const input = document.getElementById('loginInput');
   const error = document.getElementById('loginError');
   if (input.value === 'Pitter2018') {
-    sessionStorage.setItem('oa_auth', '1');
     const gate = document.getElementById('loginGate');
     gate.style.transition = 'opacity 0.7s ease';
     gate.style.opacity = '0';
