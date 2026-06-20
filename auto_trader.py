@@ -292,6 +292,7 @@ class AutoTrader:
             # threading.Lock). The semaphore prevents thread-pool saturation when all
             # 18 watchlist symbols are dispatched simultaneously.
             async with self._gemini_semaphore:
+                state: dict = {}  # initialised early so error paths can still read news fields
                 try:
                     # Step 1: full pipeline state
                     state = await asyncio.wait_for(build_state(symbol), timeout=25.0)
@@ -325,6 +326,8 @@ class AutoTrader:
                             "symbol": symbol, "timestamp": ts,
                             "action": "NO_ACTION", "confidence": round(gate["confidence"], 3),
                             "reason": gate["reason"], "price": state.get("price"),
+                            "top_headline": state.get("top_headline", ""),
+                            "sentiment_direction": state.get("sentiment_direction", "NEUTRAL"),
                             "_executed": False,
                         }
 
@@ -358,6 +361,8 @@ class AutoTrader:
                             "confidence": m_confidence,
                             "reason": master.get("decision_summary", "Master decision: no trade"),
                             "price": state.get("price"),
+                            "top_headline": state.get("top_headline", ""),
+                            "sentiment_direction": state.get("sentiment_direction", "NEUTRAL"),
                             "_executed": False,
                         }
 
@@ -381,6 +386,8 @@ class AutoTrader:
                                 "confidence": m_confidence,
                                 "reason": f"Gemini veto: {g_gate.get('reasoning', '')}",
                                 "price": state.get("price"),
+                                "top_headline": state.get("top_headline", ""),
+                                "sentiment_direction": state.get("sentiment_direction", "NEUTRAL"),
                                 "_executed": False,
                             }
                         adj = g_gate.get("confidence_adjustment", 0)
@@ -399,6 +406,8 @@ class AutoTrader:
                                     f"{g_gate.get('reasoning', '')}"
                                 ),
                                 "price": state.get("price"),
+                                "top_headline": state.get("top_headline", ""),
+                                "sentiment_direction": state.get("sentiment_direction", "NEUTRAL"),
                                 "_executed": False,
                             }
                     except asyncio.TimeoutError:
@@ -428,19 +437,21 @@ class AutoTrader:
                         }
 
                     return {
-                        "symbol":            symbol,
-                        "timestamp":         ts,
-                        "action":            decision.get("action_taken", "NO_ACTION"),
-                        "confidence":        round(max(gate["confidence"], m_confidence / 100), 3),
-                        "master_confidence": m_confidence,
-                        "master_summary":    master.get("decision_summary", ""),
-                        "reason":            decision.get("reason", ""),
-                        "price":             state.get("price"),
-                        "stop_loss":         decision.get("stop_loss"),
-                        "target_1":          decision.get("target_1"),
-                        "target_2":          decision.get("target_2"),
-                        "execution_urgency": master.get("execution_urgency", ""),
-                        "_executed":         executed,
+                        "symbol":             symbol,
+                        "timestamp":          ts,
+                        "action":             decision.get("action_taken", "NO_ACTION"),
+                        "confidence":         round(max(gate["confidence"], m_confidence / 100), 3),
+                        "master_confidence":  m_confidence,
+                        "master_summary":     master.get("decision_summary", ""),
+                        "reason":             decision.get("reason", ""),
+                        "price":              state.get("price"),
+                        "stop_loss":          decision.get("stop_loss"),
+                        "target_1":           decision.get("target_1"),
+                        "target_2":           decision.get("target_2"),
+                        "execution_urgency":  master.get("execution_urgency", ""),
+                        "top_headline":       state.get("top_headline", ""),
+                        "sentiment_direction": state.get("sentiment_direction", "NEUTRAL"),
+                        "_executed":          executed,
                     }
 
                 except asyncio.TimeoutError:
