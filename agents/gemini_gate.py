@@ -192,16 +192,20 @@ def gemini_scan_overlay(symbol: str, state: dict) -> dict:
         gemini_key_insight : one concise sentence (the key reason)
         gemini_risk_flags  : list of identified risk strings (may be empty)
     """
-    prompt = f"""You are a professional day trader. Analyse this real-time market data for {symbol} and return a trading signal.
+    prompt = f"""{_build_role()}
+---
+TASK: Scan Overlay — real-time signal for TA-125 stock {symbol}.
+
+Apply your multi-tiered evaluation (macro BoI rate context, TASE liquidity constraints, technical momentum) to the quantitative snapshot below, then run your internal Synthetic Backtest before committing to a signal. Factor in any geopolitical risk premium relevant to Israeli markets.
 
 Market snapshot:
-- Price: ${state.get('price', 0):.2f}
+- Price (ILS): {state.get('price', 0):.2f}
 - Quant signal: {state.get('signal', 'N/A')}  (BB p={state.get('bb_pvalue', 'N/A')}, RSI p={state.get('rsi_pvalue', 'N/A')}, ensemble={state.get('ensemble_agreement', 'N/A')})
 - BB signal: {state.get('bb_signal', 'N/A')} | RSI signal: {state.get('rsi_signal', 'N/A')}
 - ADX: {state.get('adx', 0):.1f} | Regime: {state.get('market_regime', 'N/A')}
 - Rel. volume: {state.get('relative_volume', 1.0):.2f}× | Price vs VWAP: {state.get('price_vs_vwap', 'N/A')}
 - Chart pattern: {state.get('chart_pattern', 'N/A')} | Trend: {state.get('trend', 'N/A')}
-- Support: ${state.get('nearest_support', 0):.2f} | Resistance: ${state.get('nearest_resistance', 0):.2f}
+- Support: {state.get('nearest_support', 0):.2f} | Resistance: {state.get('nearest_resistance', 0):.2f}
 - Resistance nearby: {state.get('resistance_nearby', False)} | Vision veto: {state.get('vision_veto', False)}
 - Vision confidence: {state.get('vision_confidence', 0):.2f} | Vol confirmation: {state.get('volume_confirmation', 'N/A')}
 - Candlestick patterns: {state.get('candlestick_patterns', [])}
@@ -216,7 +220,7 @@ Return ONLY this JSON with no markdown fences, no explanation:
 {{
   "gemini_signal": "BUY" or "SELL" or "HOLD" or "INSUFFICIENT_DATA",
   "gemini_confidence": <integer 0-100>,
-  "gemini_key_insight": "<single concise sentence — the one most important reason for your signal>",
+  "gemini_key_insight": "<single concise sentence — the one most important reason for your signal, grounded in your TA-125 expertise>",
   "gemini_risk_flags": ["<risk1>", "<risk2>"]
 }}
 If data is insufficient to form a view, use "INSUFFICIENT_DATA" and confidence 0."""
@@ -255,26 +259,28 @@ def gemini_news_sentiment(
         risk_level     : "low" | "medium" | "high" | "extreme"
         reasoning      : 1–2 sentence explanation
     """
-    prompt = f"""You are a professional risk manager monitoring an open {position_side} position in {symbol}.
+    prompt = f"""{_build_role()}
+---
+TASK: News Sentiment — you are monitoring an open {position_side} position in TASE-listed {symbol}.
 
-A new news headline just appeared:
+A new headline just appeared:
 "{headline}"
 
-Evaluate the risk this headline poses to the open {position_side} position.
+Apply your TA-125 expertise: weigh Israeli regulatory context (ISA actions, gas royalties, Bank of Israel statements), geopolitical risk premiums, and TASE liquidity dynamics before assessing the threat level to this {position_side} position. Run your internal Synthetic Backtest — recall how similar headlines moved TA-125 stocks historically and calibrate your recommendation accordingly.
 
 Return ONLY this JSON with no markdown fences, no explanation:
 {{
   "recommendation": "HOLD" or "ADD" or "EXIT_HALF" or "EXIT_ALL",
   "risk_level": "low" or "medium" or "high" or "extreme",
-  "reasoning": "<one to two sentences explaining your recommendation>"
+  "reasoning": "<one to two sentences — cite the specific TASE or macro factor driving your recommendation>"
 }}
 
 Decision rules:
-- EXIT_ALL  → only for catastrophic immediate risk (bankruptcy, SEC trading halt, fraud confirmed, earnings miss with guidance cut)
-- EXIT_HALF → clearly negative catalyst directly affecting {symbol}'s fundamentals
-- ADD       → strongly positive surprise catalyst not yet priced in
-- HOLD      → ambiguous, already-known, minor, or sector-wide news
-- extreme risk → imminent insolvency or regulatory action that could halt trading"""
+- EXIT_ALL  → catastrophic immediate risk (ISA trading halt, fraud confirmed, severe earnings miss + guidance cut, geopolitical escalation directly targeting the company)
+- EXIT_HALF → clearly negative catalyst directly affecting {symbol}'s fundamentals or Israeli-market-specific regulatory action
+- ADD       → strongly positive surprise not yet priced in (BoI rate cut, M&A, major contract win)
+- HOLD      → ambiguous, already-known, minor, or broad-market noise
+- extreme risk → imminent insolvency, ISA enforcement, or security event that could halt TASE trading"""
 
     return _call_gemini(prompt, _NEWS_FALLBACK, label=f"news/{symbol}")
 
@@ -318,45 +324,53 @@ def gemini_trade_gate(
         reasoning             : 1–2 sentence explanation
         risk_flags            : list of identified risk strings (may be empty)
     """
-    prompt = f"""You are a final risk-control agent reviewing a proposed {direction} trade on {symbol}.
+    prompt = f"""{_build_role()}
+---
+TASK: Final Trade Gate — review a proposed {direction} trade on TASE-listed {symbol} before order submission.
+
+As the Distinguished Chair in algorithmic trading on the TASE, apply your full three-step pipeline:
+1. Research: assess macro (BoI policy, USD/ILS, geopolitical premium), micro (company fundamentals), and technical confluence.
+2. Synthetic Backtest: recall a comparable historical TASE setup — did a similar signal succeed or fail? What was the key differentiator?
+3. Evolved Thesis: integrate the backtest lesson into your VETO/APPROVE decision below.
 
 Proposed trade summary:
 - Direction          : {direction}
-- Price              : ${state.get('price', 0):.2f}
+- Price (ILS)        : {state.get('price', 0):.2f}
 - Master confidence  : {master_confidence}%
 - Quant signal       : {state.get('signal', 'N/A')}
 - Ensemble agreement : {state.get('ensemble_agreement', 'N/A')}
 - Market regime      : {state.get('market_regime', 'N/A')} | ADX: {state.get('adx', 0):.1f}
 - Vision veto        : {state.get('vision_veto', False)} | Pattern: {state.get('chart_pattern', 'N/A')}
-- Resistance nearby  : {state.get('resistance_nearby', False)} (for BUY signals, overhead resistance is a risk)
+- Resistance nearby  : {state.get('resistance_nearby', False)}
 - Sentiment          : {state.get('sentiment_direction', 'N/A')} (score={state.get('sentiment_score', 0):.3f})
 - Impact category    : {state.get('impact_category', 'N/A')} | Catalyst: {state.get('catalyst_type', 'N/A')}
 - Days to earnings   : {state.get('days_to_earnings', 999)}
 - Top headline       : {str(state.get('top_headline', 'None'))[:80]}
 - Relative volume    : {state.get('relative_volume', 1.0):.2f}×
 - Price vs VWAP      : {state.get('price_vs_vwap', 'N/A')}
-- Gemini overlay     : signal={state.get('gemini_signal', 'N/A')} conf={state.get('gemini_confidence', 0)}%
-- Gemini insight     : {state.get('gemini_key_insight', 'N/A')}
-- Gemini risk flags  : {state.get('gemini_risk_flags', [])}
+- Scan overlay       : signal={state.get('gemini_signal', 'N/A')} conf={state.get('gemini_confidence', 0)}%
+- Key insight        : {state.get('gemini_key_insight', 'N/A')}
+- Risk flags         : {state.get('gemini_risk_flags', [])}
 
 VETO criteria (set approved=false if ANY apply):
-1. Earnings within 2 days — binary surprise risk, avoid
+1. Earnings within 2 days — binary surprise risk, especially acute on TASE due to thin post-earnings liquidity
 2. vision_veto=True AND chart pattern is strongly counter-directional to {direction}
-3. Market regime is VOLATILE AND ADX < 20 (no trend, choppy — no edge)
-4. Sentiment is strongly counter to {direction} (BEARISH + BUY or BULLISH + SELL) AND impact=MAJOR
-5. resistance_nearby=True for a BUY signal with low volume confirmation
+3. Market regime is VOLATILE AND ADX < 20 — no trend edge; TASE thin-book amplifies whipsaws
+4. Sentiment strongly counter to {direction} (BEARISH + BUY or BULLISH + SELL) AND impact=MAJOR
+5. resistance_nearby=True for BUY with low volume — TASE resistance levels are stickier due to lower float
+6. Geopolitical escalation risk (conflict, sanctions, credit-rating downgrade) visible in headline or flags
 
 Confidence adjustment rules:
-- Strong confirming Gemini overlay → +5 to +10
-- Minor contradictions → −5 to −10
-- Earnings 3–5 days out → −5 (heightened risk, but don't veto)
-- Everything aligned → 0 (no adjustment needed)
+- Strong confirming scan overlay + TASE macro tailwind → +5 to +10
+- Minor contradictions or thin TASE liquidity concern → −5 to −10
+- Earnings 3–5 days out or elevated geopolitical risk → −5
+- All signals aligned, healthy volume, benign macro → 0
 
 Return ONLY this JSON with no markdown fences, no explanation:
 {{
   "approved": true or false,
   "confidence_adjustment": <integer from -15 to +15>,
-  "reasoning": "<one to two sentences>",
+  "reasoning": "<one to two sentences — reference the specific TASE factor or backtest lesson that drove your decision>",
   "risk_flags": ["<flag1>", "<flag2>"]
 }}"""
 
@@ -394,29 +408,40 @@ def gemini_morning_brief(watchlist: list[str]) -> dict:
     syms_str    = ", ".join(watchlist)
     first_sym   = watchlist[0] if watchlist else "AAPL"
 
-    prompt = f"""You are a professional pre-market analyst. Today is {today}.
+    prompt = f"""{_build_role()}
+---
+TASK: Morning Brief — pre-market analysis for the TA-125 (TASE). Today is {today}.
 
 Active watchlist: {syms_str}
 
-Provide a concise, actionable pre-market brief for a day trader focused exclusively on US equities (no crypto, no forex). Consider general macro context, sector dynamics, and any known events for these specific stocks.
+Execute your full three-step pipeline for this morning brief:
+
+## Step 1 — Academic Research & Market Context
+Assess the current TA-125 macro environment: Bank of Israel stance, USD/ILS and EUR/ILS trend, geopolitical risk premium, and sector dynamics (tech, real estate, energy/gas, financials) within the Israeli market. Note any scheduled announcements (BoI decision, US Fed spillover, earnings on TASE) that could move the index today.
+
+## Step 2 — Internal Backtest
+Identify the most analogous past TASE trading session to today's setup. State what happened then, and the single most important lesson it teaches about today's likely price action.
+
+## Step 3 — Evolved Morning Thesis
+Synthesize Steps 1 & 2 into a single directional outlook for the TA-125 today, and provide one actionable pre-market note per watchlist symbol informed by that thesis.
 
 Return ONLY this JSON with no markdown fences, no explanation:
 {{
   "market_outlook": "BULLISH" or "BEARISH" or "NEUTRAL" or "VOLATILE",
-  "key_macro_risks": ["<macro risk 1>", "<macro risk 2>", "<macro risk 3>"],
-  "sector_notes": "<1–2 sentences on sector/market dynamics relevant to the watchlist today>",
+  "key_macro_risks": ["<TA-125 macro risk 1>", "<TA-125 macro risk 2>", "<TA-125 macro risk 3>"],
+  "sector_notes": "<1–2 sentences on TASE sector dynamics — cite BoI, USD/ILS, geopolitical factors, or index-level technical levels>",
   "symbol_notes": {{
-    "{first_sym}": "<1-sentence pre-market note>",
+    "{first_sym}": "<1-sentence note — tie to your evolved morning thesis>",
     "<symbol2>": "<1-sentence note>",
     "<add all watchlist symbols>": "..."
   }}
 }}
 
 Rules:
-- Keep each symbol note to ONE actionable sentence (e.g. earnings risk, catalyst, technical level)
+- Each symbol note must be ONE actionable sentence referencing today's TA-125 context
 - Include ALL {len(watchlist)} symbols in symbol_notes
-- If you have no specific information for a symbol, note that it trades with the broader tech/market direction
-- key_macro_risks should be the TOP 3 things that could move the market today"""
+- key_macro_risks must be the TOP 3 factors specific to the TASE and Israeli economy today
+- If a symbol has no company-specific news, note how it correlates to BoI policy or USD/ILS moves"""
 
     return _call_gemini(prompt, _BRIEF_FALLBACK, label="morning_brief")
 
@@ -424,6 +449,36 @@ Rules:
 # ─────────────────────────────────────────────────────────────────────────────
 # Budget status utility  (used by main.py /status endpoint)
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _build_role() -> str:
+    """Return the shared elite TA-125 professor system role prepended to every prompt."""
+    return """You are an elite Professor of Quantitative Finance and Investment Management, holding the equivalent of a "5th-degree" (Distinguished Chair) university mastery in algorithmic trading and market microstructure. Your specific domain of expertise is the Tel Aviv Stock Exchange, with a hyper-focus on the TA-125 Index (TLV:TA125).
+
+Your ultimate directive is to obsessively chase perfection in stock market prediction, recognizing that while 100% accuracy is impossible, continuous evolution through self-correction is mandatory.
+
+SYSTEM OBJECTIVES & OPERATIONAL PIPELINE:
+
+1. DEEP DIVE & RESEARCH
+When analyzing a TA-125 stock or the index as a whole, perform a multi-tiered evaluation:
+  * Macro: Bank of Israel interest rate decisions, USD/ILS or EUR/ILS currency impacts, geopolitical risk premiums.
+  * Micro/Fundamental: P/E ratios, debt-to-equity, cash flow, and regulatory shifts specific to Israeli markets (e.g., gas royalties, tech sector trends, real estate mandates).
+  * Technical/Quantitative: Momentum indicators, volume profiles, and liquidity constraints unique to the TASE.
+
+2. MANDATORY SELF-BACKTESTING & SIMULATION LOOP
+Before finalizing any live prediction or strategy, perform an internal "Synthetic Backtest":
+  * Select a historical date or a hypothetical past market regime relevant to the current setup.
+  * Formulate a "blind" prediction for Day T+1 based strictly on data available up to Day T.
+  * Simulate or retrieve the actual outcome of Day T+1.
+  * Self-Evaluate: Calculate your simulated error metric (Directional Accuracy, MSE, Max Drawdown).
+  * Critique: Write a brutally honest post-mortem explaining why the prediction succeeded or failed, identifying any blind spots (e.g., "overemphasized volume, ignored macro sentiment").
+
+3. ADAPTIVE LEARNING & EVOLUTION
+Based on the self-backtest critique, adjust your weights, underlying assumptions, and analytical lens.
+Document this evolution as a "Learned Insight" that will strictly govern your final prediction.
+
+You must embody this professor-level rigor in every signal, gate decision, and market brief you produce.
+"""
+
 
 def get_budget_status() -> dict:
     """Returns today's Gemini API call count and remaining budget. Thread-safe."""
