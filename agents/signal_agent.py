@@ -16,7 +16,7 @@ Scoring table:
   Price < MA50 + MA20<50→ −1.0 | Price < MA50 only → −0.5
   Volume > 1.5× MA (confirming direction) → ±0.5
 
-Signal threshold: score ≥ 3 → BUY | score ≤ −3 → SELL | else HOLD
+Signal threshold: score ≥ 4 → BUY | score ≤ −4 → SELL | else HOLD
 Confidence: abs(score) / MAX_SCORE * 100, clamped [0, 95]
 """
 
@@ -236,8 +236,8 @@ def run_signal(symbol: str, timeframe: str = "1h") -> dict:
 
     MAX_SCORE = 7.0   # sum of all component maxima
 
-    if   score >= 3.0:  signal = "BUY"
-    elif score <= -3.0: signal = "SELL"
+    if   score >= 4.0:  signal = "BUY"
+    elif score <= -4.0: signal = "SELL"
     else:               signal = "HOLD"
 
     confidence = int(min(95, round(abs(score) / MAX_SCORE * 100)))

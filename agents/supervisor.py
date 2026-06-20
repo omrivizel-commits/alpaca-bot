@@ -34,7 +34,9 @@ def _compute_confidence(state: dict, instructions: dict) -> float:
     quant_score = 0.0
     if state["green_light"]:
         avg_p = (state["bb_pvalue"] + state["rsi_pvalue"]) / 2
-        quant_score = max(0.0, 1.0 - avg_p * 100)
+        # Scale 0→1 within the meaningful p-value range (0.00 = full score, 0.10 = zero).
+        # Previous formula `1 - avg_p * 100` was always negative (avg_p > 0.01) → always 0.
+        quant_score = max(0.0, (0.10 - avg_p) / 0.10)
 
     sentiment_score = max(0.0, state["sentiment_score"])
 
@@ -85,11 +87,14 @@ def run_consensus(state: dict, check_only: bool = False) -> dict:
     if not state.get("ensemble_agreement"):
         return _no_action(state, "Quant: BB and RSI strategies disagree", instructions)
 
-    # ── Gate 3: Sentiment must be above threshold ─────────────────────────────
-    if state["sentiment_score"] < sentiment_threshold:
+    # ── Gate 3: Block on clearly negative sentiment only ─────────────────────
+    # Neutral news (score near 0) should not block a valid technical setup —
+    # only confirmed bearish catalysts (score < -threshold) warrant rejection.
+    if state["sentiment_score"] < -sentiment_threshold:
         return _no_action(
             state,
-            f"Sentiment: score {state['sentiment_score']:.2f} below threshold {sentiment_threshold}",
+            f"Sentiment: score {state['sentiment_score']:.2f} is bearish "
+            f"(threshold −{sentiment_threshold})",
             instructions,
         )
 
